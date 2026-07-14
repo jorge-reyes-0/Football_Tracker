@@ -15,6 +15,9 @@
     down: 1,
     distance: 10,
     soundOn: true,
+    playClockSec: 10,
+    playClockRemainingSec: 10,
+    playClockRunning: false,
   });
 
   function loadState() {
@@ -30,6 +33,7 @@
 
   let state = loadState();
   let tickHandle = null;
+  let playClockTickHandle = null;
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -68,6 +72,9 @@
     awayColorInput: document.getElementById('awayColorInput'),
     soundToggle: document.getElementById('soundToggle'),
     newGameBtn: document.getElementById('newGameBtn'),
+    playClock: document.getElementById('playClock'),
+    playClockToggleBtn: document.getElementById('playClockToggleBtn'),
+    playClockResetBtn: document.getElementById('playClockResetBtn'),
   };
 
   const DOWN_WORDS = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th' };
@@ -106,6 +113,12 @@
     el.homePossession.classList.toggle('active', state.possession === 'home');
     el.awayPossession.classList.toggle('active', state.possession === 'away');
     el.possToggle.classList.toggle('away', state.possession === 'away');
+
+    el.playClock.textContent = state.playClockRemainingSec;
+    el.playClock.classList.toggle('expired', state.playClockRemainingSec === 0);
+    el.playClockToggleBtn.textContent = state.playClockRunning ? 'Pause' : 'Start';
+    el.playClockToggleBtn.classList.toggle('start', !state.playClockRunning);
+    el.playClockToggleBtn.classList.toggle('pause', state.playClockRunning);
 
     el.quarterLengthSelect.value = String(state.quarterLengthSec);
     el.homeColorInput.value = state.home.color;
@@ -184,6 +197,54 @@
     state.distance = 10;
     saveState();
     render();
+    resetPlayClock();
+  }
+
+  // --- Play clock (10s between plays) ---
+  function playClockTick() {
+    if (state.playClockRemainingSec <= 0) {
+      stopPlayClock();
+      playDelayWarning();
+      return;
+    }
+    state.playClockRemainingSec -= 1;
+    if (state.playClockRemainingSec <= 0) {
+      state.playClockRemainingSec = 0;
+      stopPlayClock();
+      playDelayWarning();
+    }
+    saveState();
+    render();
+  }
+
+  function startPlayClock() {
+    if (state.playClockRemainingSec <= 0) return;
+    state.playClockRunning = true;
+    playClockTickHandle = setInterval(playClockTick, 1000);
+    saveState();
+    render();
+  }
+
+  function stopPlayClock() {
+    state.playClockRunning = false;
+    if (playClockTickHandle) {
+      clearInterval(playClockTickHandle);
+      playClockTickHandle = null;
+    }
+    saveState();
+    render();
+  }
+
+  function togglePlayClock() {
+    if (state.playClockRunning) stopPlayClock();
+    else startPlayClock();
+  }
+
+  function resetPlayClock(autoStop = true) {
+    if (autoStop) stopPlayClock();
+    state.playClockRemainingSec = state.playClockSec;
+    saveState();
+    render();
   }
 
   // --- Audio horn ---
@@ -237,6 +298,31 @@
         osc.connect(gain);
         osc.start(t0);
         osc.stop(t0 + 0.22);
+      });
+    } catch {
+      // audio not available; ignore
+    }
+  }
+
+  function playDelayWarning() {
+    if (!state.soundOn) return;
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.16, 0.32].forEach((offset) => {
+        const t0 = now + offset;
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.13);
+
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = 880;
+        osc.connect(gain);
+        osc.start(t0);
+        osc.stop(t0 + 0.15);
       });
     } catch {
       // audio not available; ignore
@@ -314,6 +400,7 @@
       flashThirdDown();
       playThirdDownHype();
     }
+    if (state.down !== prevDown) resetPlayClock();
   }
 
   function changeDistance(delta) {
@@ -327,6 +414,7 @@
     state.distance = 10;
     saveState();
     render();
+    resetPlayClock();
   }
 
   function setPossession(team) {
@@ -338,6 +426,7 @@
   // --- New game ---
   function newGame() {
     stopClock();
+    stopPlayClock();
     const preserved = {
       home: { ...defaultState().home, name: state.home.name, color: state.home.color },
       away: { ...defaultState().away, name: state.away.name, color: state.away.color },
@@ -352,6 +441,8 @@
   // --- Event bindings ---
   el.startPauseBtn.addEventListener('click', toggleClock);
   el.resetClockBtn.addEventListener('click', resetClock);
+  el.playClockToggleBtn.addEventListener('click', togglePlayClock);
+  el.playClockResetBtn.addEventListener('click', () => resetPlayClock());
   el.prevQuarter.addEventListener('click', () => changeQuarter(-1));
   el.nextQuarter.addEventListener('click', () => changeQuarter(1));
 
