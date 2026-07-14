@@ -215,6 +215,15 @@ body {
   margin-bottom: 10px;
 }
 
+.dd-readout.third-down-flash {
+  animation: thirdDownPulse 1.6s ease-in-out;
+}
+
+@keyframes thirdDownPulse {
+  0%, 100% { color: var(--led-amber); text-shadow: none; }
+  15%, 65% { color: var(--led-red); text-shadow: 0 0 22px rgba(255, 59, 48, 0.85); }
+}
+
 .dd-controls {
   display: flex;
   flex-wrap: wrap;

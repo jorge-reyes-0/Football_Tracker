@@ -188,20 +188,25 @@
 
   // --- Audio horn ---
   let audioCtx = null;
+  function getAudioCtx() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
   function playHorn() {
     if (!state.soundOn) return;
     try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const now = audioCtx.currentTime;
-      const gain = audioCtx.createGain();
-      gain.connect(audioCtx.destination);
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const gain = ctx.createGain();
+      gain.connect(ctx.destination);
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.exponentialRampToValueAtTime(0.35, now + 0.05);
       gain.gain.setValueAtTime(0.35, now + 1.1);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
 
-      [220, 165].forEach((freq, i) => {
-        const osc = audioCtx.createOscillator();
+      [220, 165].forEach((freq) => {
+        const osc = ctx.createOscillator();
         osc.type = 'sawtooth';
         osc.frequency.value = freq;
         osc.connect(gain);
@@ -211,6 +216,61 @@
     } catch {
       // audio not available; ignore
     }
+  }
+
+  function playHypeHonks() {
+    if (!state.soundOn) return;
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.24].forEach((offset) => {
+        const t0 = now + offset;
+        const gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.4, t0 + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.2);
+
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.value = 300;
+        osc.connect(gain);
+        osc.start(t0);
+        osc.stop(t0 + 0.22);
+      });
+    } catch {
+      // audio not available; ignore
+    }
+  }
+
+  // --- Third down hype call ("It's THIRD DOWN!" + horn) ---
+  function playThirdDownHype() {
+    if (!state.soundOn) return;
+    try {
+      if ('speechSynthesis' in window && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance("It's THIRD DOWN!");
+        utter.rate = 0.85;
+        utter.pitch = 1.15;
+        utter.volume = 1;
+        utter.onend = playHypeHonks;
+        utter.onerror = playHypeHonks;
+        window.speechSynthesis.speak(utter);
+      } else {
+        playHypeHonks();
+      }
+    } catch {
+      playHypeHonks();
+    }
+  }
+
+  function flashThirdDown() {
+    const readout = el.downLabel.closest('.dd-readout');
+    if (!readout) return;
+    readout.classList.remove('third-down-flash');
+    // force reflow so the animation restarts if triggered again quickly
+    void readout.offsetWidth;
+    readout.classList.add('third-down-flash');
   }
 
   // --- Scoring ---
@@ -223,9 +283,14 @@
 
   // --- Down & distance ---
   function changeDown(delta) {
+    const prevDown = state.down;
     state.down = Math.min(4, Math.max(1, state.down + delta));
     saveState();
     render();
+    if (state.down === 3 && prevDown !== 3) {
+      flashThirdDown();
+      playThirdDownHype();
+    }
   }
 
   function changeDistance(delta) {
