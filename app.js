@@ -244,8 +244,14 @@
   }
 
   // --- Third down hype call ("It's THIRD DOWN!" + horn) ---
-  function playThirdDownHype() {
-    if (!state.soundOn) return;
+  const thirdDownClip = new Audio('assets/sounds/third-down.mp3');
+  thirdDownClip.preload = 'auto';
+  let thirdDownClipFailed = false;
+  thirdDownClip.addEventListener('error', () => {
+    thirdDownClipFailed = true;
+  });
+
+  function playThirdDownSpeechFallback() {
     try {
       if ('speechSynthesis' in window && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -261,6 +267,23 @@
       }
     } catch {
       playHypeHonks();
+    }
+  }
+
+  function playThirdDownHype() {
+    if (!state.soundOn) return;
+    if (thirdDownClipFailed) {
+      playThirdDownSpeechFallback();
+      return;
+    }
+    try {
+      thirdDownClip.currentTime = 0;
+      const playPromise = thirdDownClip.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(playThirdDownSpeechFallback);
+      }
+    } catch {
+      playThirdDownSpeechFallback();
     }
   }
 

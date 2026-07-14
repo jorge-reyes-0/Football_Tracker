@@ -6,7 +6,7 @@ A football-themed scoreboard app for tracking scores and counting down quarters 
 
 - **Scoring** — TD +6, TD+XP +7, FG +3, Safety +2, XP +1, and a −1 button to correct mistakes, tracked separately for each team
 - **Game clock** — a real countdown clock per quarter with start/pause/reset, a configurable quarter length (5–20 minutes), quarter navigation (Q1–Q4, then OT), and an air-horn sound when time expires
-- **Down & distance** — adjustable down and yards to go, with a one-tap "1st Down" reset
+- **Down & distance** — adjustable down and yards to go, with a one-tap "1st Down" reset; hitting 3rd down triggers a hype sound clip (falls back to a synthesized "It's THIRD DOWN!" call + horn if the clip can't load)
 - **Possession indicator** — tap either team's football icon (or the possession arrow) to flip who has the ball
 - **Timeouts** — 3 per team, tap a dot to mark it used/unused
 - **Customization** — editable team names, per-team colors, and a horn on/off toggle, all in Settings (⚙️)
@@ -30,3 +30,4 @@ No install or build step required — it's a static site.
 - `index.html` — page structure
 - `style.css` — football field / scoreboard theme
 - `app.js` — game state, clock, and interactions (vanilla JS, no dependencies)
+- `assets/sounds/third-down.mp3` — third down hype clip
