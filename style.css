@@ -241,7 +241,7 @@ body {
 .poss-toggle:hover { transform: scale(1.15); }
 .poss-toggle.away #possArrow { transform: scaleX(-1); }
 
-.down-distance {
+.down-panel {
   border-top: 1px solid rgba(255,255,255,0.15);
   padding-top: 14px;
 }

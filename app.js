@@ -13,7 +13,6 @@
     running: false,
     possession: 'home',
     down: 1,
-    distance: 10,
     soundOn: true,
     playClockSec: 10,
     playClockRemainingSec: 10,
@@ -49,11 +48,8 @@
     nextQuarter: document.getElementById('nextQuarter'),
     possToggle: document.getElementById('possToggle'),
     downLabel: document.getElementById('downLabel'),
-    distanceLabel: document.getElementById('distanceLabel'),
     downMinus: document.getElementById('downMinus'),
     downPlus: document.getElementById('downPlus'),
-    distMinus: document.getElementById('distMinus'),
-    distPlus: document.getElementById('distPlus'),
     firstDownBtn: document.getElementById('firstDownBtn'),
     homeName: document.getElementById('homeName'),
     awayName: document.getElementById('awayName'),
@@ -97,7 +93,6 @@
     el.startPauseBtn.classList.toggle('pause', state.running);
 
     el.downLabel.textContent = DOWN_WORDS[state.down] || '1st';
-    el.distanceLabel.textContent = state.distance === 0 ? 'Goal' : state.distance;
 
     if (document.activeElement !== el.homeName) el.homeName.value = state.home.name;
     if (document.activeElement !== el.awayName) el.awayName.value = state.away.name;
@@ -194,7 +189,6 @@
     state.quarterIndex = newIndex;
     state.timeRemainingSec = state.quarterLengthSec;
     state.down = 1;
-    state.distance = 10;
     saveState();
     render();
     resetPlayClock();
@@ -390,7 +384,7 @@
     render();
   }
 
-  // --- Down & distance ---
+  // --- Down ---
   function changeDown(delta) {
     const prevDown = state.down;
     state.down = Math.min(4, Math.max(1, state.down + delta));
@@ -403,15 +397,8 @@
     if (state.down !== prevDown) resetPlayClock();
   }
 
-  function changeDistance(delta) {
-    state.distance = Math.min(99, Math.max(0, state.distance + delta));
-    saveState();
-    render();
-  }
-
   function markFirstDown() {
     state.down = 1;
-    state.distance = 10;
     saveState();
     render();
     resetPlayClock();
@@ -463,8 +450,6 @@
 
   el.downMinus.addEventListener('click', () => changeDown(-1));
   el.downPlus.addEventListener('click', () => changeDown(1));
-  el.distMinus.addEventListener('click', () => changeDistance(-1));
-  el.distPlus.addEventListener('click', () => changeDistance(1));
   el.firstDownBtn.addEventListener('click', markFirstDown);
 
   el.homePossession.addEventListener('click', () => setPossession('home'));
