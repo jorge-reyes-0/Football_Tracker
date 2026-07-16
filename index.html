@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>Gridiron Scoreboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏈</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Teko:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="field-bg" aria-hidden="true"></div>
+
+<header class="scoreboard-header">
+  <div class="brand">
+    <span class="brand-icon">🏈</span>
+    <h1>Gridiron Scoreboard</h1>
+  </div>
+  <button id="settingsBtn" class="icon-btn" aria-label="Open settings" title="Settings">⚙️</button>
+</header>
+
+<main class="board">
+
+  <section class="clock-panel" aria-label="Game clock">
+    <div class="quarter-control">
+      <button id="prevQuarter" class="nav-btn" aria-label="Previous quarter">◀</button>
+      <div class="quarter-display" id="quarterDisplay">Q1</div>
+      <button id="nextQuarter" class="nav-btn" aria-label="Next quarter">▶</button>
+    </div>
+
+    <div class="game-clock" id="gameClock">12:00</div>
+
+    <div class="clock-buttons">
+      <button id="startPauseBtn" class="clock-btn start">Start</button>
+      <button id="resetClockBtn" class="clock-btn">Reset</button>
+    </div>
+
+    <div class="play-clock-panel">
+      <span class="play-clock-tag">Play Clock</span>
+      <div class="play-clock" id="playClock">10</div>
+      <button id="playClockToggleBtn" class="clock-btn start small">Start</button>
+      <button id="playClockResetBtn" class="clock-btn small">Reset</button>
+    </div>
+
+    <div class="possession-row">
+      <span class="poss-label">Possession</span>
+      <div class="poss-toggle" id="possToggle">
+        <span class="poss-arrow" id="possArrow">🏈</span>
+      </div>
+    </div>
+
+    <div class="down-panel">
+      <div class="dd-readout"><span id="downLabel">1st</span> Down</div>
+      <div class="dd-controls">
+        <div class="dd-group">
+          <span class="dd-tag">Down</span>
+          <button id="downMinus" class="dd-btn">−</button>
+          <button id="downPlus" class="dd-btn">+</button>
+        </div>
+        <button id="firstDownBtn" class="dd-btn wide">1st Down ⟳</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="teams">
+    <div class="team-panel" id="homePanel" data-team="home">
+      <button class="poss-indicator" id="homePossession" title="Give possession to Home">🏈</button>
+      <input class="team-name" id="homeName" maxlength="14" value="HOME" aria-label="Home team name" />
+      <div class="score" id="homeScore">0</div>
+      <div class="score-buttons">
+        <button data-team="home" data-points="6" class="pt-btn">TD +6</button>
+        <button data-team="home" data-points="7" class="pt-btn">TD+XP +7</button>
+        <button data-team="home" data-points="3" class="pt-btn">FG +3</button>
+        <button data-team="home" data-points="2" class="pt-btn">SAF +2</button>
+        <button data-team="home" data-points="1" class="pt-btn">XP +1</button>
+        <button data-team="home" data-points="-1" class="pt-btn minus">−1</button>
+      </div>
+      <div class="timeouts-row">
+        <span class="to-label">Timeouts</span>
+        <div class="timeouts" id="homeTimeouts"></div>
+      </div>
+    </div>
+
+    <div class="team-panel" id="awayPanel" data-team="away">
+      <button class="poss-indicator" id="awayPossession" title="Give possession to Away">🏈</button>
+      <input class="team-name" id="awayName" maxlength="14" value="AWAY" aria-label="Away team name" />
+      <div class="score" id="awayScore">0</div>
+      <div class="score-buttons">
+        <button data-team="away" data-points="6" class="pt-btn">TD +6</button>
+        <button data-team="away" data-points="7" class="pt-btn">TD+XP +7</button>
+        <button data-team="away" data-points="3" class="pt-btn">FG +3</button>
+        <button data-team="away" data-points="2" class="pt-btn">SAF +2</button>
+        <button data-team="away" data-points="1" class="pt-btn">XP +1</button>
+        <button data-team="away" data-points="-1" class="pt-btn minus">−1</button>
+      </div>
+      <div class="timeouts-row">
+        <span class="to-label">Timeouts</span>
+        <div class="timeouts" id="awayTimeouts"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="settingsDialog">
+  <form method="dialog" class="settings-form">
+    <h2>Settings</h2>
+
+    <label class="settings-row">
+      <span>Quarter length</span>
+      <select id="quarterLengthSelect">
+        <option value="300">5 minutes</option>
+        <option value="480">8 minutes</option>
+        <option value="600">10 minutes</option>
+        <option value="720" selected>12 minutes</option>
+        <option value="900">15 minutes</option>
+        <option value="1200">20 minutes</option>
+      </select>
+    </label>
+
+    <label class="settings-row">
+      <span>Home color</span>
+      <input type="color" id="homeColorInput" value="#1d4ed8" />
+    </label>
+
+    <label class="settings-row">
+      <span>Away color</span>
+      <input type="color" id="awayColorInput" value="#b91c1c" />
+    </label>
+
+    <label class="settings-row">
+      <span>Sound effects</span>
+      <input type="checkbox" id="soundToggle" checked />
+    </label>
+
+    <div class="settings-actions">
+      <button type="button" id="newGameBtn" class="danger-btn">New Game</button>
+      <button type="submit" class="clock-btn start">Done</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
